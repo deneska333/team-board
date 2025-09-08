@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  # База данных PostgreSQL
+  db:
+    image: postgres:15
+    container_name: taskboard-postgres
+    environment:
+      POSTGRES_DB: taskboard
+      POSTGRES_USER: taskboard_user
+      POSTGRES_PASSWORD: taskboard_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U taskboard_user -d taskboard"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - taskboard-network
+
+  # Go приложение
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: taskboard-app
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: taskboard_user
+      DB_PASSWORD: taskboard_password
+      DB_NAME: taskboard
+      DB_SSLMODE: disable
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - taskboard-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  taskboard-network:
+    driver: bridge

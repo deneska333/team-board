@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Доска задач</title>
+    <style>
+        :root {
+            --primary-blue: #1E3A8A;
+            --primary-blue-dark: #1E40AF;
+            --primary-blue-light: #3B82F6;
+            --secondary-purple: #7C3AED;
+            --secondary-purple-light: #8B5CF6;
+            --background-dark: #0F172A;
+            --background-card: #1E293B;
+            --card-background: #FFFFFF;
+            --text-primary: #0F172A;
+            --text-secondary: #475569;
+            --text-light: #F1F5F9;
+            --border-light: #CBD5E1;
+            --border-dark: #334155;
+            --accent-orange: #F59E0B;
+            --accent-orange-dark: #D97706;
+            --accent-green: #10B981;
+            --shadow-light: rgba(30, 58, 138, 0.1);
+            --shadow-medium: rgba(30, 58, 138, 0.2);
+            --shadow-colored: rgba(124, 58, 237, 0.3);
+            --gradient-primary: linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-purple) 100%);
+            --gradient-background: linear-gradient(135deg, #F1F5F9 0%, #E2E8F0 100%);
+            --gradient-card: linear-gradient(145deg, #FFFFFF 0%, #F8FAFC  100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--gradient-background);
+            min-height: 100vh;
+            padding: 20px;
+            color: var(--text-primary);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: var(--gradient-card);
+            padding: 24px 32px;
+            border-radius: 16px;
+            margin-bottom: 32px;
+            box-shadow: 0 8px 32px var(--shadow-medium);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid var(--border-light);
+        }
+
+        .header h1 {
+            color: var(--text-primary);
+            font-size: 28px;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .header-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .board-id-display {
+            background: rgba(30, 58, 138, 0.1);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            color: var(--primary-blue-dark);
+            font-family: 'Monaco', 'Menlo', monospace;
+            border: 1px solid var(--border-light);
+            font-weight: 600;
+        }
+
+        .auth-form {
+            background: var(--gradient-card);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 12px 40px var(--shadow-colored);
+            max-width: 420px;
+            margin: 60px auto;
+            border: 1px solid var(--border-light);
+        }
+
+        .auth-form h2 {
+            text-align: center;
+            margin-bottom: 32px;
+            color: var(--text-primary);
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .auth-form .btn {
+            margin-bottom: 12px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid var(--border-light);
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: var(--card-background);
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary-blue-light);
+            background: var(--card-background);
+            box-shadow: 0 0 0 3px var(--shadow-light);
+        }
+
+        .btn {
+            background: var(--gradient-primary);
+            color: white;
+            padding: 14px 28px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-width: 120px;
+            box-shadow: 0 4px 12px var(--shadow-light);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px var(--shadow-colored);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: var(--secondary-purple);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: var(--secondary-purple-light);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #F87171 0%, #EF4444 100%);
+        }
+
+        .btn-danger:hover {
+            background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+            gap: 32px;
+        }
+
+        .column {
+            background: var(--gradient-card);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 8px 24px var(--shadow-medium);
+            min-height: 600px;
+            border: 1px solid var(--border-light);
+            transition: all 0.3s ease;
+        }
+
+        .column:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px var(--shadow-colored);
+        }
+
+        .column-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid var(--border-light);
+        }
+
+        .column-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .column-title::before {
+            content: '';
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--accent-orange);
+        }
+
+        .add-card-btn {
+            font-size: 14px;
+            padding: 10px 20px;
+            border-radius: 8px;
+            min-width: auto;
+        }
+
+        .cards {
+            min-height: 450px;
+        }
+
+        .card {
+            background: var(--card-background);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+            cursor: move;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 2px 8px var(--shadow-light);
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--gradient-primary);
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px var(--shadow-colored);
+            background: var(--card-background);
+        }
+
+        .card.dragging {
+            opacity: 0.6;
+            transform: rotate(2deg) scale(1.02);
+            box-shadow: 0 12px 32px var(--shadow-colored);
+        }
+
+        .card-title {
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+            font-size: 16px;
+            line-height: 1.4;
+        }
+
+        .card-description {
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .card-assignee {
+            color: var(--text-light);
+            font-size: 12px;
+            font-weight: 600;
+            background: var(--accent-green);
+            padding: 4px 12px;
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .card-actions {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            display: flex;
+            gap: 4px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .card:hover .card-actions {
+            opacity: 1;
+        }
+
+        .card-actions button {
+            background: var(--card-background);
+            border: 1px solid var(--border-light);
+            cursor: pointer;
+            font-size: 14px;
+            padding: 6px;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card-actions button:hover {
+            background: var(--border-light);
+            transform: scale(1.1);
+        }
+
+        .column-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-icon {
+            background: none;
+            border: 1px solid var(--border-light);
+            cursor: pointer;
+            font-size: 14px;
+            padding: 6px;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-icon:hover {
+            background: var(--border-light);
+            transform: scale(1.1);
+        }
+
+        .btn-danger-icon:hover {
+            background: #FEE2E2;
+            color: #DC2626;
+        }
+
+        .add-column-container {
+            background: rgba(30, 58, 138, 0.05);
+            border: 2px dashed var(--border-light);
+            border-radius: 16px;
+            padding: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 200px;
+            transition: all 0.3s ease;
+        }
+
+        .add-column-container:hover {
+            border-color: var(--primary-blue-light);
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .add-column-btn {
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px var(--shadow-light);
+        }
+
+        .add-column-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px var(--shadow-colored);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(31, 41, 55, 0.75);
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            background: var(--gradient-card);
+            margin: 5% auto;
+            padding: 32px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+            box-shadow: 0 24px 72px var(--shadow-colored);
+            border: 1px solid var(--border-light);
+        }
+
+        .close {
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: color 0.3s ease;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+
+        .close:hover {
+            color: var(--text-primary);
+            background: var(--border-light);
+        }
+
+        .error {
+            color: #DC2626;
+            background: #FEE2E2;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #FECACA;
+            font-size: 14px;
+        }
+
+        .success {
+            color: var(--text-light);
+            background: var(--accent-green);
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid var(--accent-green);
+            font-size: 14px;
+        }
+
+        .drop-zone {
+            border: 2px dashed var(--border-light);
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+            color: var(--text-secondary);
+            margin-top: 16px;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            background: rgba(124, 58, 237, 0.05);
+        }
+
+        .drop-zone.drag-over {
+            border-color: var(--secondary-purple);
+            background: rgba(124, 58, 237, 0.1);
+            color: var(--secondary-purple);
+            transform: scale(1.02);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .logout-btn {
+            margin-left: 20px;
+        }
+
+        /* Анимации */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card, .column, .auth-form {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        /* Скроллбар */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--card-background);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary-blue-light);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-blue-dark);
+        }
+
+        @media (max-width: 768px) {
+            .board {
+                grid-template-columns: 1fr;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 16px;
+                text-align: center;
+            }
+
+            .header-info {
+                flex-direction: column;
+            }
+
+            .auth-form {
+                margin: 20px auto;
+                padding: 24px;
+            }
+
+            .container {
+                padding: 16px;
+            }
+        }
+
+        /* Дополнительные улучшения */
+        .form-group input:valid {
+            border-color: var(--accent-green);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .loading::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, var(--primary-blue-light), transparent);
+            animation: loading 1.5s infinite;
+        }
+
+        @keyframes loading {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Форма создания доски -->
+        <div id="create-board-form" class="auth-form">
+            <h2>Создать новую доску</h2>
+            <div id="create-error" class="error hidden"></div>
+            <form id="create-form">
+                <div class="form-group">
+                    <label for="board-name">Название доски:</label>
+                    <input type="text" id="board-name" required placeholder="Введите название доски">
+                </div>
+                <div class="form-group">
+                    <label for="board-password">Пароль (минимум 6 символов):</label>
+                    <input type="password" id="board-password" required minlength="6" placeholder="Создайте безопасный пароль">
+                </div>
+                <button type="submit" class="btn">Создать доску</button>
+                <button type="button" class="btn btn-secondary" onclick="showLoginForm()">Войти в существующую</button>
+            </form>
+        </div>
+
+        <!-- Форма входа -->
+        <div id="login-form" class="auth-form hidden">
+            <h2>Войти в доску</h2>
+            <div id="login-error" class="error hidden"></div>
+            <form id="login-form-element">
+                <div class="form-group">
+                    <label for="board-id">ID доски:</label>
+                    <input type="text" id="board-id" required placeholder="Введите ID доски">
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Пароль:</label>
+                    <input type="password" id="login-password" required placeholder="Введите пароль">
+                </div>
+                <button type="submit" class="btn">Войти</button>
+                <button type="button" class="btn btn-secondary" onclick="showCreateForm()">Создать новую доску</button>
+            </form>
+        </div>
+
+        <!-- Основная доска -->
+        <div id="board-container" class="hidden">
+            <div class="header">
+                <h1 id="board-title">Доска задач</h1>
+                <div class="header-info">
+                    <div id="board-id-display" class="board-id-display"></div>
+                    <button class="btn btn-danger logout-btn" onclick="logout()">Выйти</button>
+                </div>
+            </div>
+
+            <div class="board" id="board">
+                <!-- Колонки будут добавлены динамически -->
+            </div>
+        </div>
+
+        <!-- Модальное окно для создания/редактирования карточки -->
+        <div id="card-modal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeCardModal()">&times;</span>
+                <h2 id="modal-title">Новая карточка</h2>
+                <div id="modal-error" class="error hidden"></div>
+                <form id="card-form">
+                    <div class="form-group">
+                        <label for="card-title">Заголовок:</label>
+                        <input type="text" id="card-title" required placeholder="Введите заголовок задачи">
+                    </div>
+                    <div class="form-group">
+                        <label for="card-description">Описание:</label>
+                        <input type="text" id="card-description" placeholder="Опишите задачу подробнее">
+                    </div>
+                    <div class="form-group">
+                        <label for="card-assignee">Ответственный:</label>
+                        <input type="text" id="card-assignee" placeholder="Кто будет выполнять задачу?">
+                    </div>
+                    <button type="submit" class="btn">Сохранить</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeCardModal()">Отмена</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Модальное окно для создания/редактирования колонки -->
+        <div id="column-modal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeColumnModal()">&times;</span>
+                <h2 id="column-modal-title">Новая колонка</h2>
+                <div id="column-modal-error" class="error hidden"></div>
+                <form id="column-form">
+                    <div class="form-group">
+                        <label for="column-name">Название колонки:</label>
+                        <input type="text" id="column-name" required placeholder="Введите название колонки">
+                    </div>
+                    <button type="submit" class="btn">Сохранить</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeColumnModal()">Отмена</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

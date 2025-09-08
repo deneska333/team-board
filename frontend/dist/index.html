@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Доска задач</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .auth-section {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 400px;
+            margin: 100px auto;
+        }
+
+        .board {
+            display: flex;
+            gap: 20px;
+            overflow-x: auto;
+            padding-bottom: 20px;
+        }
+
+        .column {
+            background: white;
+            border-radius: 10px;
+            min-width: 300px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .column-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .column-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .card {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            cursor: move;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-title {
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .card-description {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .card-assignee {
+            background: #007bff;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 15px;
+            font-size: 12px;
+            display: inline-block;
+        }
+
+        .card-actions {
+            margin-top: 10px;
+            text-align: right;
+        }
+
+        .btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+
+        .btn:hover {
+            background: #0056b3;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .btn-small {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            margin: 50px auto;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 500px;
+            position: relative;
+        }
+
+        .close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .password-display {
+            background: #f8f9fa;
+            border: 2px solid #007bff;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 18px;
+            text-align: center;
+            margin: 15px 0;
+            color: #007bff;
+            font-weight: bold;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .add-column {
+            min-width: 250px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .add-column:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .drag-over {
+            background: #e3f2fd;
+            border: 2px dashed #2196f3;
+        }
+    </style>
+</head>
+<body>
+    <!-- Секция авторизации -->
+    <div id="authSection" class="auth-section">
+        <h2>Добро пожаловать в доску задач</h2>
+        <p>Для входа введите пароль доски или сгенерируйте новую доску</p>
+
+        <div class="form-group">
+            <label for="password">Пароль доски:</label>
+            <input type="password" id="password" placeholder="Введите пароль">
+        </div>
+        <button class="btn" onclick="login()">Войти</button>
+
+        <hr style="margin: 20px 0;">
+
+        <div class="form-group">
+            <label for="boardName">Название новой доски:</label>
+            <input type="text" id="boardName" placeholder="Введите название доски">
+        </div>
+        <button class="btn" onclick="generatePassword()">Создать новую доску</button>
+
+        <div id="generatedPassword" class="hidden">
+            <h3>Пароль сгенерирован!</h3>
+            <div id="passwordDisplay" class="password-display"></div>
+            <p>Сохраните этот пароль и раздайте его всем участникам команды</p>
+        </div>
+    </div>
+
+    <!-- Основное приложение -->
+    <div id="app" class="hidden">
+        <div class="container">
+            <div class="header">
+                <h1 id="boardTitle">Доска задач</h1>
+                <button class="btn btn-danger" onclick="logout()">Выйти</button>
+            </div>
+
+            <div class="board" id="board">
+                <!-- Колонки будут добавлены динамически -->
+                <div class="add-column" onclick="showAddColumnModal()">
+                    <h3>+ Добавить колонку</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для добавления колонки -->
+    <div id="columnModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('columnModal')">&times;</span>
+            <h3>Добавить колонку</h3>
+            <div class="form-group">
+                <label for="columnName">Название колонки:</label>
+                <input type="text" id="columnName" placeholder="Введите название">
+            </div>
+            <button class="btn" onclick="addColumn()">Добавить</button>
+        </div>
+    </div>
+
+    <!-- Модальное окно для добавления карточки -->
+    <div id="cardModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('cardModal')">&times;</span>
+            <h3>Добавить карточку</h3>
+            <div class="form-group">
+                <label for="cardTitle">Заголовок:</label>
+                <input type="text" id="cardTitle" placeholder="Введите заголовок">
+            </div>
+            <div class="form-group">
+                <label for="cardDescription">Описание:</label>
+                <textarea id="cardDescription" rows="3" placeholder="Введите описание"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="cardAssignee">Ответственный:</label>
+                <input type="text" id="cardAssignee" placeholder="Имя ответственного">
+            </div>
+            <input type="hidden" id="cardColumnId">
+            <button class="btn" onclick="addCard()">Добавить</button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

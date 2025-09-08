@@ -4,11 +4,20 @@ FROM golang:1.21-alpine AS builder
 # Устанавливаем рабочую директорию
 WORKDIR /app
 
+# Устанавливаем git для загрузки зависимостей
+RUN apk add --no-cache git
+
 # Копируем go mod и go sum файлы
 COPY go.mod go.sum ./
 
-# Загружаем зависимости
-RUN go mod download
+# Устанавливаем переменные окружения для Go proxy
+ENV GOPROXY=https://proxy.golang.org,direct
+ENV GOSUMDB=sum.golang.org
+
+# Загружаем зависимости с повторными попытками
+RUN go mod download || \
+    (sleep 5 && go mod download) || \
+    (sleep 10 && go mod download)
 
 # Копируем исходный код
 COPY . .

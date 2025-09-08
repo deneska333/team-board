@@ -1,43 +1,27 @@
-# Используем официальный образ Golang
-FROM golang:1.21-alpine AS builder
+# Используем официальный образ Golang для сборки и запуска
+FROM golang:1.21-alpine
 
 # Устанавливаем рабочую директорию
 WORKDIR /app
 
-# Устанавливаем git для загрузки зависимостей
-RUN apk add --no-cache git
-
 # Копируем go mod и go sum файлы
 COPY go.mod go.sum ./
 
-# Устанавливаем переменные окружения для Go proxy
-ENV GOPROXY=https://proxy.golang.org,direct
-ENV GOSUMDB=sum.golang.org
+# Устанавливаем переменные окружения для Go
+ENV CGO_ENABLED=0
+ENV GOOS=linux
 
-# Загружаем зависимости с повторными попытками
-RUN go mod download || \
-    (sleep 5 && go mod download) || \
-    (sleep 10 && go mod download)
+# Загружаем зависимости
+RUN go mod download
 
 # Копируем исходный код
 COPY . .
 
 # Собираем приложение
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main .
+RUN go build -o main .
 
-# Используем минимальный образ для запуска
-FROM alpine:latest
-
-# Устанавливаем ca-certificates для HTTPS
-RUN apk --no-cache add ca-certificates
-
-WORKDIR /root/
-
-# Копируем скомпилированное приложение
-COPY --from=builder /app/main .
-
-# Копируем статические файлы фронтенда
-COPY --from=builder /app/frontend ./frontend
+# Копируем статические файлы фронтенда (они уже в контейнере)
+# frontend директория будет скопирована с помощью COPY . .
 
 # Открываем порт
 EXPOSE 3000

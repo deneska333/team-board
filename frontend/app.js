@@ -15,9 +15,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Настройка обработчиков событий
 function setupEventListeners() {
-    // Форма создания доски
-    document.getElementById('create-form').addEventListener('submit', createBoard);
-
     // Форма входа
     document.getElementById('login-form-element').addEventListener('submit', loginToBoard);
 
@@ -48,37 +45,6 @@ async function checkAuthStatus() {
     }
 }
 
-// Создание новой доски
-async function createBoard(e) {
-    e.preventDefault();
-
-    const name = document.getElementById('board-name').value;
-    const password = document.getElementById('board-password').value;
-
-    const errorDiv = document.getElementById('create-error');
-    errorDiv.classList.add('hidden');
-
-    try {
-        const response = await fetch(`${API_BASE}/boards`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            credentials: 'include',
-            body: JSON.stringify({ name, password }),
-        });
-
-        if (response.ok) {
-            const board = await response.json();
-            showBoard(board);
-        } else {
-            const error = await response.json();
-            showError('create-error', error.error);
-        }
-    } catch (error) {
-        showError('create-error', 'Ошибка соединения с сервером');
-    }
-}
 
 // Вход в существующую доску
 async function loginToBoard(e) {
@@ -123,8 +89,7 @@ async function loginToBoard(e) {
 function showBoard(board) {
     currentBoardId = board.id;
 
-    // Скрываем формы входа и показываем доску
-    document.getElementById('create-board-form').classList.add('hidden');
+    // Скрываем форму входа и показываем доску
     document.getElementById('login-form').classList.add('hidden');
     document.getElementById('board-container').classList.remove('hidden');
 
@@ -186,6 +151,8 @@ function createColumnElement(column) {
 
 // Создание HTML карточки
 function createCardHTML(card) {
+    const deadlineHTML = card.deadline ? getDeadlineHTML(card.deadline) : '';
+    
     return `
         <div class="card" draggable="true" data-card-id="${card.id}" 
              ondragstart="dragStart(event)" ondragend="dragEnd(event)">
@@ -195,9 +162,37 @@ function createCardHTML(card) {
             </div>
             <div class="card-title">${card.title}</div>
             ${card.description ? `<div class="card-description">${card.description}</div>` : ''}
-            ${card.assignee ? `<div class="card-assignee">${card.assignee}</div>` : ''}
+            <div class="card-footer">
+                ${card.assignee ? `<div class="card-assignee">${card.assignee}</div>` : ''}
+                ${deadlineHTML}
+            </div>
         </div>
     `;
+}
+
+// Функция для генерации HTML дедлайна
+function getDeadlineHTML(deadline) {
+    const now = new Date();
+    const deadlineDate = new Date(deadline);
+    const timeDiff = deadlineDate.getTime() - now.getTime();
+    const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+    
+    let className = 'card-deadline';
+    if (timeDiff < 0) {
+        className += ' overdue';
+    } else if (daysDiff <= 1) {
+        className += ' due-soon';
+    }
+    
+    const formattedDate = deadlineDate.toLocaleDateString('ru-RU', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+    
+    return `<div class="${className}">${formattedDate}</div>`;
 }
 
 // Drag and Drop функции
@@ -294,6 +289,14 @@ async function loadCardData(cardId) {
                 document.getElementById('card-title').value = foundCard.title;
                 document.getElementById('card-description').value = foundCard.description || '';
                 document.getElementById('card-assignee').value = foundCard.assignee || '';
+                
+                // Обрабатываем дедлайн для поля datetime-local
+                if (foundCard.deadline) {
+                    const date = new Date(foundCard.deadline);
+                    const offset = date.getTimezoneOffset() * 60000;
+                    const localDate = new Date(date.getTime() - offset);
+                    document.getElementById('card-deadline').value = localDate.toISOString().slice(0, 16);
+                }
             }
         }
     } catch (error) {
@@ -315,6 +318,8 @@ async function saveCard(e) {
     const title = document.getElementById('card-title').value;
     const description = document.getElementById('card-description').value;
     const assignee = document.getElementById('card-assignee').value;
+    const deadlineValue = document.getElementById('card-deadline').value;
+    const deadline = deadlineValue ? new Date(deadlineValue).toISOString() : null;
 
     const errorDiv = document.getElementById('modal-error');
     errorDiv.classList.add('hidden');
@@ -330,7 +335,7 @@ async function saveCard(e) {
                     'Content-Type': 'application/json',
                 },
                 credentials: 'include',
-                body: JSON.stringify({ title, description, assignee }),
+                body: JSON.stringify({ title, description, assignee, deadline }),
             });
         } else {
             // Создание новой карточки
@@ -344,6 +349,7 @@ async function saveCard(e) {
                     title,
                     description,
                     assignee,
+                    deadline,
                     column_id: currentColumnId
                 }),
             });
@@ -528,17 +534,6 @@ async function logout() {
     }
 }
 
-// Показать форму входа
-function showLoginForm() {
-    document.getElementById('create-board-form').classList.add('hidden');
-    document.getElementById('login-form').classList.remove('hidden');
-}
-
-// Показать форму создания
-function showCreateForm() {
-    document.getElementById('login-form').classList.add('hidden');
-    document.getElementById('create-board-form').classList.remove('hidden');
-}
 
 // Показать ошибку
 function showError(elementId, message) {

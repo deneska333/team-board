@@ -60,8 +60,6 @@ func main() {
 	// Публичные маршруты
 	api := app.Group("/api")
 
-	// Создание доски
-	api.Post("/boards", boardHandler.CreateBoard)
 
 	// Вход в доску
 	api.Post("/boards/:id/login", boardHandler.Login)

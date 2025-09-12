@@ -300,6 +300,45 @@
             gap: 4px;
         }
 
+        .card-deadline {
+            color: var(--text-light);
+            font-size: 11px;
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-weight: 600;
+            background: #DC2626;
+            padding: 4px 12px;
+            border-radius: 20px;
+        }
+
+        .card-deadline.overdue {
+            color: var(--text-light);
+            background: #DC2626;
+            font-weight: 600;
+        }
+
+        .card-deadline.overdue::before {
+            content: '⚠️';
+            margin-right: 4px;
+        }
+
+        .card-deadline.due-soon {
+            color: var(--text-light);
+            background: var(--accent-orange-dark);
+            font-weight: 600;
+        }
+
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 12px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
         .card-actions {
             position: absolute;
             top: 12px;
@@ -584,26 +623,8 @@
 </head>
 <body>
     <div class="container">
-        <!-- Форма создания доски -->
-        <div id="create-board-form" class="auth-form">
-            <h2>Создать новую доску</h2>
-            <div id="create-error" class="error hidden"></div>
-            <form id="create-form">
-                <div class="form-group">
-                    <label for="board-name">Название доски:</label>
-                    <input type="text" id="board-name" required placeholder="Введите название доски">
-                </div>
-                <div class="form-group">
-                    <label for="board-password">Пароль (минимум 6 символов):</label>
-                    <input type="password" id="board-password" required minlength="6" placeholder="Создайте безопасный пароль">
-                </div>
-                <button type="submit" class="btn">Создать доску</button>
-                <button type="button" class="btn btn-secondary" onclick="showLoginForm()">Войти в существующую</button>
-            </form>
-        </div>
-
         <!-- Форма входа -->
-        <div id="login-form" class="auth-form hidden">
+        <div id="login-form" class="auth-form">
             <h2>Войти в доску</h2>
             <div id="login-error" class="error hidden"></div>
             <form id="login-form-element">
@@ -616,7 +637,6 @@
                     <input type="password" id="login-password" required placeholder="Введите пароль">
                 </div>
                 <button type="submit" class="btn">Войти</button>
-                <button type="button" class="btn btn-secondary" onclick="showCreateForm()">Создать новую доску</button>
             </form>
         </div>
 
@@ -653,6 +673,10 @@
                     <div class="form-group">
                         <label for="card-assignee">Ответственный:</label>
                         <input type="text" id="card-assignee" placeholder="Кто будет выполнять задачу?">
+                    </div>
+                    <div class="form-group">
+                        <label for="card-deadline">Дедлайн:</label>
+                        <input type="datetime-local" id="card-deadline" placeholder="Выберите дату и время">
                     </div>
                     <button type="submit" class="btn">Сохранить</button>
                     <button type="button" class="btn btn-secondary" onclick="closeCardModal()">Отмена</button>

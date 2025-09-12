@@ -32,15 +32,16 @@ type Column struct {
 
 // Card представляет карточку задачи
 type Card struct {
-	ID          string    `json:"id" gorm:"primaryKey;size:32"`
-	BoardID     string    `json:"board_id" gorm:"not null;size:32;index"`
-	Title       string    `json:"title" gorm:"not null;size:500"`
-	Description string    `json:"description" gorm:"type:text"`
-	Assignee    string    `json:"assignee" gorm:"size:255"`
-	ColumnID    string    `json:"column_id" gorm:"not null;size:32;index"`
-	OrderNum    int       `json:"order" gorm:"not null;default:1"`
-	CreatedAt   time.Time `json:"created" gorm:"autoCreateTime"`
-	UpdatedAt   time.Time `json:"updated" gorm:"autoUpdateTime"`
+	ID          string     `json:"id" gorm:"primaryKey;size:32"`
+	BoardID     string     `json:"board_id" gorm:"not null;size:32;index"`
+	Title       string     `json:"title" gorm:"not null;size:500"`
+	Description string     `json:"description" gorm:"type:text"`
+	Assignee    string     `json:"assignee" gorm:"size:255"`
+	Deadline    *time.Time `json:"deadline" gorm:"type:timestamp"`
+	ColumnID    string     `json:"column_id" gorm:"not null;size:32;index"`
+	OrderNum    int        `json:"order" gorm:"not null;default:1"`
+	CreatedAt   time.Time  `json:"created" gorm:"autoCreateTime"`
+	UpdatedAt   time.Time  `json:"updated" gorm:"autoUpdateTime"`
 
 	// Связи
 	Board  Board  `json:"-" gorm:"foreignKey:BoardID;constraint:OnDelete:CASCADE"`
@@ -73,16 +74,18 @@ type LoginRequest struct {
 }
 
 type CreateCardRequest struct {
-	Title       string `json:"title" validate:"required"`
-	Description string `json:"description"`
-	Assignee    string `json:"assignee"`
-	ColumnID    string `json:"column_id" validate:"required"`
+	Title       string     `json:"title" validate:"required"`
+	Description string     `json:"description"`
+	Assignee    string     `json:"assignee"`
+	Deadline    *time.Time `json:"deadline"`
+	ColumnID    string     `json:"column_id" validate:"required"`
 }
 
 type UpdateCardRequest struct {
-	Title       string `json:"title"`
-	Description string `json:"description"`
-	Assignee    string `json:"assignee"`
+	Title       string     `json:"title"`
+	Description string     `json:"description"`
+	Assignee    string     `json:"assignee"`
+	Deadline    *time.Time `json:"deadline"`
 }
 
 type MoveCardRequest struct {

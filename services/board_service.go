@@ -192,6 +192,7 @@ func (s *BoardService) CreateCard(boardID string, req models.CreateCardRequest) 
 		Title:       req.Title,
 		Description: req.Description,
 		Assignee:    req.Assignee,
+		Deadline:    req.Deadline,
 		ColumnID:    req.ColumnID,
 		OrderNum:    int(maxOrder) + 1,
 	}
@@ -228,6 +229,8 @@ func (s *BoardService) UpdateCard(boardID, cardID string, req models.UpdateCardR
 	if req.Assignee != "" {
 		updates["assignee"] = req.Assignee
 	}
+	// Обновляем дедлайн (даже если nil, чтобы можно было очистить)
+	updates["deadline"] = req.Deadline
 
 	// Если есть что обновлять
 	if len(updates) > 0 {
